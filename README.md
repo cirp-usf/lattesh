@@ -6,7 +6,7 @@ To use this potential, one needs design tools to generate these structures, whic
 
 *Lattesh* aims to provide tools for the creation of lattices in an open source package. 
 
-![Screenshot of the bunny skeleton](doc/images/bunny_skeleton.jpg)![Screenshot of the bunny mesh](doc/images/bunny_mesh.jpg)![Photo of the bunny in the sun](doc/images/bunny_shadow.jpg)
+<img src="doc/images/bunny_skeleton.jpg" width="200" alt="Screenshot of the bunny skeleton"><img src="doc/images/bunny_mesh.jpg" width=200 alt="Screenshot of the bunny mesh"><img src="doc/images/bunny_shadow.jpg" width=350 alt="Photo of the bunny in the sun">
 
 ## Instructions
 
