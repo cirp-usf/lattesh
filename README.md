@@ -25,7 +25,10 @@ All examples shown here were printed at **cirp**.
 *Lattesh* is developed in the context of [MOAMMM](https://www.moammm.eu), a research project in the context of FET Open – Novel ideas for radically new technologies;
 part of the European Innovation Council pilot and also known as EIC Pathfinder. 
 
-
- - ![Flag European Union](doc/images/eu.png) This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 862015. 
-
-   Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union. Neither the European Union nor the granting authority can be held responsible for them. 
+<table>
+ <tr>
+  <td><img alt="European Union flag" src="doc/images/eu.png" width="200"></td> 
+  <td>This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 862015. <br />
+  Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union. Neither the European Union nor the granting authority can be held responsible for them.</td>
+ </tr>
+</table>
