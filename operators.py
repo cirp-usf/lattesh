@@ -28,7 +28,11 @@ import numpy as np
 import math
 import os
 from glob import glob
-import pyopenvdb as vdb
+if bpy.app.version >= (4, 4, 0):
+    import openvdb as vdb
+else:
+    import pyopenvdb as vdb
+
 from itertools import combinations
 
 try:
@@ -993,8 +997,7 @@ def compute_levelset(mesh, scale, move_dist=None):
     mesh.loop_triangles.foreach_get('vertices', mtris)
     mverts.shape = (nmverts, 3)
     mtris.shape = (nmtris, 3)
-    tr = vdb.Transform()
-    tr.scale(scale)
+    tr = vdb.createLinearTransform(scale)
     levelset = vdb.FloatGrid.createLevelSetFromPolygons(mverts, triangles=mtris, transform=tr, halfWidth=hwidth)
     return levelset
 

@@ -23,7 +23,7 @@
 bl_info = {
     "name": "Lattesh - Lattice Tools",
     "author": "Ubiratan S. Freitas",
-    "blender": (2, 80, 0),
+    "blender": (3, 6, 0),
     "description": "Tools for generating lattice structures",
     "category": "Add Mesh",
 }
