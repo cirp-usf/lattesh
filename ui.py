@@ -74,7 +74,7 @@ class VIEW3D_PT_lattice_Ico(View3DLatticePanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return is_mode_object(context) and is_active_object_mesh(context) and have_scipy
+        return is_mode_object(context) and is_active_object_mesh(context)
 
     def draw(self, context):
         lattice_mesh = context.scene.lattice_mesh
