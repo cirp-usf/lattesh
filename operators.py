@@ -57,7 +57,7 @@ class Ico:
         mtris = mtris.sum(axis=1)
         mtris /= np.linalg.norm(mtris, axis=1, keepdims=True)
         edgelengths = np.linalg.norm(verts[edges[:,0],:] - verts[edges[:,1],:], axis=1)
-        
+
         self.min_face_side = edgelengths.min()
         self.max_face_side = edgelengths.max()
         #Minimal angle between two verts
@@ -144,7 +144,7 @@ class Cell:
                             for ed in vedges:
                                 li = edges_to_volumes.setdefault(ed, [])
                                 li.append(nvolumes)
-                                
+
         self.verts = np.array(verts, dtype=np.float32)
         self.nverts = len(verts)
         self.edges = np.array(edges, dtype=np.int32)
@@ -157,7 +157,7 @@ class Cell:
 
 
 
-fpath = os.path.dirname(os.path.abspath(__file__)) 
+fpath = os.path.dirname(os.path.abspath(__file__))
 
 nodes_file = os.path.join(fpath, 'nodes', 'nodes.blend')
 
@@ -172,7 +172,7 @@ for k, cf in enumerate(cell_files):
     c.from_file(cf)
     Cells[c.name] = c
     cell_items.append((c.name, c.name, c.name, k))
-    
+
 
 def get_node_tree(ntree):
     ng = bpy.data.node_groups.get(ntree)
@@ -182,6 +182,12 @@ def get_node_tree(ntree):
             data_to.node_groups = [ntree]
         ng = data_to.node_groups[0]
     return ng
+
+def md_input_set(md, id: str, value) -> None:
+    if hasattr(md, "properties"):  # VER >= 5.2
+        getattr(md.properties.inputs, id).value = value
+    else:
+        md[id] = value
 
 def get_input_identifier(ntree, name):
     identifier = None
@@ -194,18 +200,18 @@ def get_input_identifier(ntree, name):
 
 def make_npvoronoi(carac_length, dims, corner):
     """Makes a Voronoi lattice"""
-    
+
     carac3 = carac_length ** 3
     padding = 2
-    
+
     dims = dims + (2 * padding * carac_length)
-    
+
     npoints = math.ceil(dims.prod() / carac3)
-    
+
     npoints = max(npoints, 30) # create at least this amount of points
-    
+
     print('voronoi npoints:', npoints)
-    
+
     p = np.random.random((npoints,3))
     p = p * dims.reshape((1,3)) + (corner.reshape((1,3)) - padding * carac_length)
 
@@ -281,9 +287,9 @@ def nplattice2meshdata(v, e):
 def make_meshlattice(name, verts, edges, cellsize):
     mesh = bpy.data.meshes.new(name+'Mesh')
     mesh.from_pydata(verts, edges, [])
-    
+
     bm = bmesh.new()
-    
+
     bm.from_mesh(mesh)
     bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1.0e-3*cellsize)
     return bm, mesh
@@ -291,7 +297,7 @@ def make_meshlattice(name, verts, edges, cellsize):
 
 def intersect(bm, obj, depsgraph):
     """Clips mesh lattice to object
-    
+
     Returns a mesh where all vertices and edges are inside or on the surface
     of object. Edges that intercept the object are clipped.
     """
@@ -303,7 +309,7 @@ def intersect(bm, obj, depsgraph):
     cedges = []
     disttol = 5.0e-5
     double_edges = set()
-    
+
     # Find the edges that cross object
     for e in bm.edges:
         p0 = e.verts[0].co
@@ -331,14 +337,14 @@ def intersect(bm, obj, depsgraph):
     dper = dict()
     for k in cedges:
         dper[k[0]] = k[1]
-    
+
     tmp = np.array(list(dper.values()))
     print('min dist', tmp.min(), 'max dist', tmp.max())
 
     # Split the found edges on crossing point
     bmesh.ops.bisect_edges(bm, edges=[ e[0] for e in cedges ], cuts=1, edge_percents=dper)['geom_split']
 
-    # Find the vertices that are on the surface and identify their outside and inside edges based on 
+    # Find the vertices that are on the surface and identify their outside and inside edges based on
     # surface normal
     for v in bm.verts:
         loc, n, idx, hdis = tree.find_nearest(v.co, 1.1*disttol)
@@ -371,7 +377,7 @@ def intersect(bm, obj, depsgraph):
 
     invalid_in = set([v for v in inside if not v.is_valid])
     inside = inside - invalid_in
-    
+
     print('inv out', len(invalid_out), 'inv in', len(invalid_in), 'in out', len(inside.intersection(outside)))
 
     # Delete the outside edges from on-the-surface vertices
@@ -381,7 +387,7 @@ def intersect(bm, obj, depsgraph):
     invalid = set([v for v in surfverts if not v.is_valid])
     print('Found {} invalid surfverts'.format(len(invalid)))
     surfverts = surfverts - invalid
-    
+
     # Find all vertices linked to the ones on the surface
     to_process = surfverts.copy()
     processed = set()
@@ -413,7 +419,7 @@ def intersect(bm, obj, depsgraph):
 
     bm.select_flush_mode()
 
-    
+
 
 def angle_dist(a, b):
     d = abs(b-a)
@@ -430,7 +436,7 @@ def ring_connect_faces(ang_a, ang_b):
     sbidx = ang_b.argsort()
     sa = ang_a[saidx]
     sb = ang_b[sbidx]
-    
+
     posa = 0
     nposa = 1
     dists = np.zeros((nb,2), dtype=ang_b.dtype)
@@ -441,7 +447,7 @@ def ring_connect_faces(ang_a, ang_b):
     ntris = 0
     ntrisa = 0
     ntrisb = 0
-    
+
     while ntrisa < na and ntrisb < nb:
         dista = angle_dist(sa[posa], sb[nposb])
         distb = angle_dist(sb[posb], sa[nposa])
@@ -472,7 +478,7 @@ def ring_connect_faces(ang_a, ang_b):
         nposb = (posb + 1) % nb
         ntrisb += 1
         ntris += 1
-        
+
     return faces, face_masq
 
 vecz = np.array([0, 0, 1], dtype=np.float32)
@@ -622,7 +628,7 @@ def ico_compute_node(ev, ico):
                 if phi < theta_crit or phi > math.pi - theta_crit:
                     to_keep[tri_vert] = True
                     recalc = True
-            
+
         border_verts = tris[border_tris,:].flatten()
         ed_verts.append(set(border_verts[to_keep[border_verts]]))
 
@@ -644,7 +650,7 @@ def createMeshIco(target, depsgraph, r=0.5, var_radius=False, icosub=2, add_inde
     nverts = len(tmesh.vertices)
     nedges = len(tmesh.edges)
     index_attrib_name = 'skeleton_index'
-    
+
     verts = np.empty(nverts * 3, dtype=np.float32)
     edges = np.empty(nedges * 2, dtype=np.int32)
     var_radius = var_radius and 'radius' in tmesh.attributes
@@ -660,20 +666,20 @@ def createMeshIco(target, depsgraph, r=0.5, var_radius=False, icosub=2, add_inde
 
     tmesh.vertices.foreach_get('co', verts)
     tmesh.edges.foreach_get('vertices', edges)
-    
+
     verts.shape = (nverts,3)
     edges.shape = (nedges,2)
-    
+
     vec_edges = verts[edges[:,1],:] - verts[edges[:,0],:]
     edge_len = np.linalg.norm(vec_edges, axis=1, keepdims=True)
     vec_edges /= edge_len
-    
+
     icospheres = [Ico(x + icosub) for x in range(4)]
-    
-    
+
+
     # Quantize edge orientations
     qedges = (vec_edges * quantization).astype(np.int32)
-    
+
     dqedges = {}
     for k in range(nedges):
         qv = tuple(qedges[k,:])
@@ -690,7 +696,7 @@ def createMeshIco(target, depsgraph, r=0.5, var_radius=False, icosub=2, add_inde
 
     print(f'{nedges} total edges, {len(dqedges)} quantized orientations. ')
 
-    
+
     # Generate all possible edge orientations, including reverse
     tempset = set()
     for k in dqedges.keys():
@@ -824,7 +830,7 @@ def createMeshIco(target, depsgraph, r=0.5, var_radius=False, icosub=2, add_inde
         ed_nd_dict.setdefault(edkey, []).append([k, edir])
 
     print('\nEdge node types:', len(ed_nd_dict))
-    
+
     ed_nd_faces = {}
     ed_nd_nfaces = 0
     for ed_ty in ed_nd_dict.keys():
@@ -863,7 +869,7 @@ def createMeshIco(target, depsgraph, r=0.5, var_radius=False, icosub=2, add_inde
 
     newfaces.resize((total_faces + ed_nd_nfaces, 3))
     print('Nb. of edge node faces:', ed_nd_nfaces)
-        
+
 
     processed_faces = 0
     for ed_ty in ed_nd_dict.keys():
@@ -883,7 +889,7 @@ def createMeshIco(target, depsgraph, r=0.5, var_radius=False, icosub=2, add_inde
         index_attrib.data.foreach_set('value', newindex)
     newobj  = bpy.data.objects.new(name, mesh)
 
-    # Place the lattice at the same position and attitude of original object       
+    # Place the lattice at the same position and attitude of original object
     newobj.matrix_world = target.matrix_world.copy()
 
     if add_index and add_mod:
@@ -893,7 +899,7 @@ def createMeshIco(target, depsgraph, r=0.5, var_radius=False, icosub=2, add_inde
         if identifier is not None:
             mod = newobj.modifiers.new('Change diameter', 'NODES')
             mod.node_group = ng
-            mod[identifier] = target
+            md_input_set(mod, identifier, target)
 
     # Link object to scene
     bpy.context.collection.objects.link(newobj)
@@ -902,7 +908,7 @@ def createMeshIco(target, depsgraph, r=0.5, var_radius=False, icosub=2, add_inde
 def createMetaball(target,  r=0.5, p=0.9):
     if target.type != 'MESH':
         return
-    
+
     name = target.name + "Rod {:.1f}".format(r * 2)
     print("Creating", name)
 
@@ -910,17 +916,17 @@ def createMetaball(target,  r=0.5, p=0.9):
     obj = bpy.data.objects.new(name, metaball)
     bpy.context.collection.objects.link(obj)
     stiffness = 10.0
-    
+
     # clip p
     p = min(p, 0.99);
     p = max(p, 0.01)
 
-    # Compute the threashold so that mesh radius is 
+    # Compute the threashold so that mesh radius is
     # exacltly r
     metaball.threshold = (1 - p ** 2) ** 3 * stiffness
-    
+
     radius = r / p
-    
+
     vec_x = Vector((1.0, 0.0, 0.0))
 
     for v in target.data.vertices:
@@ -952,9 +958,9 @@ def createMetaball(target,  r=0.5, p=0.9):
                     axis = edge.cross(vec_x).normalized()
                     rot = Quaternion(axis, -angle).normalized()
                     element.rotation = (rot.w, rot.x, rot.y, rot.z)
-                    
-                
-    # Place the lattice at the same position and attitude of original object       
+
+
+    # Place the lattice at the same position and attitude of original object
     obj.matrix_world = target.matrix_world.copy()
 
     return obj
@@ -997,7 +1003,7 @@ def is_outside(pos, levelset, move_dist):
     outside = nmin > move_dist
     dist = min(abs(nmin), abs(nmax))
     close_to_border = dist <= move_dist
-    onborder = not outside and dist < gridsize 
+    onborder = not outside and dist < gridsize
     return  outside, onborder, close_to_border
 
 def find_closest(pos, tree, move_dist):
@@ -1149,7 +1155,7 @@ def fill_mesh(mesh, pos, pos_label, size, lattice_cell, connect_boundary=True, m
                         print('Short edge:',edlen, vin)
                         print(is_outside(vin, ls_high, move_dist))
                         print(vertos)
-                        
+
 
                     edge_tuple = (vertin.index, nverts)
                     nedges = len(edges)
@@ -1192,7 +1198,7 @@ def fill_mesh(mesh, pos, pos_label, size, lattice_cell, connect_boundary=True, m
                     print('Processing region {} of {}'.format(region, border_to_process), end='\r')
             vol_verts_on_border = volume_verts.intersection(border_verts)
             n_onborder = len(vol_verts_on_border)
-                
+
             if n_onborder < 2:
                 continue
             elif n_onborder < 4:
@@ -1208,7 +1214,7 @@ def fill_mesh(mesh, pos, pos_label, size, lattice_cell, connect_boundary=True, m
                 vinds = np.array(list(volume_verts))
                 vpoints = verts[vinds, :]
                 is_border = np.array([x in border_verts for x in vinds])
-                
+
                 try:
                     hull = ConvexHull(vpoints)
                 except Exception:
@@ -1223,7 +1229,7 @@ def fill_mesh(mesh, pos, pos_label, size, lattice_cell, connect_boundary=True, m
                 border_simplices.clear()
                 edges_to_remove.clear()
                 simplices_to_connect.clear()
-                
+
                 # find all border edges
                 for k, simplex in enumerate(hull.simplices):
                     facet = np.sort(simplex[is_border[simplex]])
@@ -1234,7 +1240,7 @@ def fill_mesh(mesh, pos, pos_label, size, lattice_cell, connect_boundary=True, m
                 for ed, facet_numbers in hull_edges.items():
                     if len(np.intersect1d(np.array(facet_numbers), sim_on_border)) > 1:
                         # edge is between two triangles on the surface
-                        # compute the angle between these tris and ignore the edge 
+                        # compute the angle between these tris and ignore the edge
                         # if the angle is too close to 180
                         if len(facet_numbers) != 2:
                             print('Wrong number of facets for edge')
@@ -1246,14 +1252,14 @@ def fill_mesh(mesh, pos, pos_label, size, lattice_cell, connect_boundary=True, m
                             # Normals
                             nm = hull.equations[facet_numbers, :3]
                             proj = nm[0, :] @ nm[1, :]
-                            
+
                             if abs(proj) > math.cos(math.radians(40)):
                                 # Faces are less than 40 degrees apart, ignore edge
                                 edges_to_remove[ed] = facet_numbers
                                 for fa in facet_numbers:
                                     simplices_to_connect.setdefault(fa, set()).add(ed)
                                 continue
-                        
+
                     edge_tuple = tuple(sorted(vinds[list(ed)]))
                     if edge_tuple not in added_edges:
                         nedges = len(edges)
@@ -1317,7 +1323,7 @@ def fill_mesh(mesh, pos, pos_label, size, lattice_cell, connect_boundary=True, m
 
     # end if has_regions
     total = nborder + ninterior
-    print('\nMesh has {} cells. Interior: {} ({:.1f}%) Border: {} ({:.1f}%)'.format(total, ninterior, 
+    print('\nMesh has {} cells. Interior: {} ({:.1f}%) Border: {} ({:.1f}%)'.format(total, ninterior,
           (ninterior / total) * 100 , nborder, (nborder / total) * 100))
     print('Original borders:', np.count_nonzero(pos_label==2))
     edges = np.array(edges, dtype=np.int32)
@@ -1325,7 +1331,7 @@ def fill_mesh(mesh, pos, pos_label, size, lattice_cell, connect_boundary=True, m
     min_len = edge_lengths.min()
     max_len = edge_lengths.max()
     median_len = np.median(edge_lengths)
-    
+
     report_data = {'ninterior':ninterior, 'nborder':nborder, 'min_len':min_len, 'max_len':max_len, 'median_len':median_len}
     return verts, edges, border_verts, faces, report_data
 
@@ -1367,7 +1373,7 @@ class ObjectMetaLattice(bpy.types.Operator):
     bl_idname = "object.metalattice"
     bl_label = "Meta Lattice"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     @classmethod
     def poll(cls, context):
         return context.active_object is not None and context.active_object.type == 'MESH'
@@ -1384,7 +1390,7 @@ class ObjectIcoLattice(bpy.types.Operator):
     bl_idname = "object.icolattice"
     bl_label = "Lattice Volume (Ico)"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     @classmethod
     def poll(cls, context):
         return context.active_object is not None and context.active_object.type == 'MESH'
@@ -1394,10 +1400,10 @@ class ObjectIcoLattice(bpy.types.Operator):
         lattice_mesh = context.scene.lattice_mesh
         depsgraph = context.evaluated_depsgraph_get()
         createMeshIco(context.active_object,
-                      depsgraph, 
-                      lattice_mesh.radius, 
-                      lattice_mesh.variable_radius, 
-                      lattice_mesh.icosub, 
+                      depsgraph,
+                      lattice_mesh.radius,
+                      lattice_mesh.variable_radius,
+                      lattice_mesh.icosub,
                       lattice_mesh.add_index,
                       lattice_mesh.add_dia_mod)
         return {'FINISHED'}
@@ -1409,7 +1415,7 @@ class ObjectCreateMeshLattice(bpy.types.Operator):
     bl_idname = "object.create_meshlattice"
     bl_label = "Create Simple Lattice"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
 
 
     @classmethod
@@ -1428,7 +1434,7 @@ class ObjectCreateMeshLattice(bpy.types.Operator):
         bm, mesh = make_meshlattice(name, verts, edges, lattice_mesh.cellsize)
         bm.to_mesh(mesh)
         bm.free()
-        
+
         newobj  = bpy.data.objects.new(name, mesh)
 
         # Link object to scene
@@ -1490,7 +1496,7 @@ class ObjectFillMeshLattice(bpy.types.Operator):
     bl_idname = "object.fill_meshlattice"
     bl_label = "Fill Mesh Lattice"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     @classmethod
     def poll(cls, context):
         return context.active_object is not None and context.active_object.type == 'MESH'
@@ -1528,7 +1534,7 @@ class ObjectFillMeshLattice(bpy.types.Operator):
                             pos_label[ncells] = 2 # border cells
                         in_pos[ncells, :] = np.array(tr.indexToWorld((xi-1, yi-1, zi-1)))
                         ncells += 1
-        
+
         pos_idx = pos_label > 0
         verts, edges, border_verts, faces, report_data = fill_mesh(mesh, in_pos[pos_idx, :],
                                                                    pos_label[pos_idx], cellsize,
@@ -1578,7 +1584,7 @@ class ObjectFillVoronoiLattice(bpy.types.Operator):
     bl_idname = "object.fill_voronoilattice"
     bl_label = "Fill Voronoi Lattice"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     @classmethod
     def poll(cls, context):
         return have_scipy and context.active_object is not None and context.active_object.type == 'MESH'
@@ -1601,7 +1607,7 @@ class ObjectFillVoronoiLattice(bpy.types.Operator):
         intersect(bm, obj, depsgraph)
         bm.to_mesh(mesh)
         bm.free()
-        
+
         newobj  = bpy.data.objects.new(name, mesh)
         newobj.matrix_world = obj.matrix_world.copy()
 
@@ -1609,7 +1615,3 @@ class ObjectFillVoronoiLattice(bpy.types.Operator):
         bpy.context.collection.objects.link(newobj)
 
         return {'FINISHED'}
-
-
-
-
