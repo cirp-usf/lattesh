@@ -9,7 +9,7 @@ To use this potential, one needs design tools to generate these structures, whic
 <img src="doc/images/bunny_skeleton.jpg" width="200" alt="Screenshot of the bunny skeleton"><img src="doc/images/bunny_mesh.jpg" width=200 alt="Screenshot of the bunny mesh"><img src="doc/images/bunny_shadow.jpg" width=350 alt="Photo of the bunny in the sun">
 
 ## Install instructions
-Download the zip file from the [Release](https://github.com/cirp-usf/lattesh/releases/tag/v0.1.0).
+Download the zip file from the [Release](https://github.com/cirp-usf/lattesh/releases/tag/v0.1.2).
 
 Go to Edit -> Preferences -> Add-ons -> Install from disk (down arrow on the upper right corner) and select the zip file.
 
